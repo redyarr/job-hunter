@@ -15,6 +15,11 @@ export async function analyzeOnePost(postId: string): Promise<void> {
 
   await prisma.jobPost.update({ where: { id: post.id }, data: { status: "ANALYZING" } });
 
+  logger.info("Starting AI analysis for job post", {
+    postId: post.id,
+    channel: post.telegramChannel,
+  });
+
   const ai = getAIProvider();
 
   let result: JobAnalysisResult;
@@ -23,6 +28,7 @@ export async function analyzeOnePost(postId: string): Promise<void> {
   } catch (err) {
     logger.error("AI analysis failed, skipping post", {
       postId: post.id,
+      channel: post.telegramChannel,
       error: err instanceof Error ? err.message : String(err),
     });
     await prisma.jobPost.update({
@@ -66,6 +72,7 @@ export async function analyzeOnePost(postId: string): Promise<void> {
 
   logger.info("Analyzed job post", {
     postId: post.id,
+    channel: post.telegramChannel,
     status: finalStatus,
     matchScore: result.match_score,
     title: result.job_title,
