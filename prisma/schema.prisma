@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model JobPost {
+  id                String   @id @default(cuid())
+  telegramChannel   String
+  telegramMessageId String
+  originalText      String
+  sourceUrl         String?
+  postedAt          DateTime?
+  processedAt       DateTime?
+  status            String   @default("NEW") // NEW, ANALYZING, RELEVANT, REJECTED_BY_AI, FILTERED
+  createdAt         DateTime @default(now())
+
+  analysis    JobAnalysis?
+  application Application?
+
+  @@unique([telegramChannel, telegramMessageId])
+  @@index([status])
+}
+
+model JobAnalysis {
+  id                 String   @id @default(cuid())
+  jobPostId          String   @unique
+  jobPost            JobPost  @relation(fields: [jobPostId], references: [id])
+
+  isJobPost          Boolean
+  isRelevant         Boolean
+  category           String   // JSON array as text
+  title              String?
+  company            String?
+  location           String?
+  remoteStatus       String?  // fully_remote, hybrid, on_site, unclear
+  remoteEligibility  String?  // worldwide, restricted, iraq_accepted, n/a
+  salary             String?
+  requiredSkills     String?  // JSON array as text
+  applicationEmail   String?
+  applicationUrl     String?
+  deadline           String?
+  matchScore         Int?
+  confidenceScore    Int?
+  whyItMatches       String?  // JSON array as text
+  missingRequirements String? // JSON array as text
+  rejectionReason    String?
+  suspiciousFlags    String?  // JSON array as text
+  analyzedAt         DateTime @default(now())
+}
+
+model Application {
+  id            String    @id @default(cuid())
+  jobPostId     String    @unique
+  jobPost       JobPost   @relation(fields: [jobPostId], references: [id])
+
+  status        String    @default("WAITING_FOR_APPROVAL")
+  // WAITING_FOR_APPROVAL, DRAFT_GENERATED, WAITING_FOR_FINAL_CONFIRMATION,
+  // SENT, FAILED, CANCELLED
+  recipientEmail String?
+  subject       String?
+  emailBody     String?
+  cvPath        String?
+  sentAt        DateTime?
+  errorMessage  String?
+  createdAt     DateTime  @default(now())
+}
