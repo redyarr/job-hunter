@@ -6,6 +6,7 @@
  */
 
 export interface Profile {
+  name: string;
   location: string;
   summary: string;
   skills: {
@@ -20,6 +21,8 @@ export interface Profile {
 }
 
 export const profile: Profile = {
+  name: "Redyar Hawzhin",
+
   location: "Sulaymaniyah, Kurdistan Region, Iraq",
 
   summary:

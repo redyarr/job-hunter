@@ -66,6 +66,7 @@ export function buildEmailPrompt(
   return `Write a professional, concise job application email based ONLY on the profile facts given below. Never invent employers, projects, durations, or skills not listed. Never exaggerate. Return ONLY a JSON object with "subject" and "body" fields — no markdown fences, no commentary.
 
 ## Profile (source of truth — do not add anything beyond this)
+Candidate Name: ${profile.name}
 Summary: ${profile.summary}
 Software development skills: ${profile.skills.softwareDevelopment.join(", ")}
 Data/analytics skills: ${profile.skills.dataAndAnalytics.join(", ")}
@@ -78,6 +79,7 @@ ${analysisJson}
 ## Requirements for the email
 - Subject: clear, mentions the role.
 - Body: 3-4 short paragraphs max. Greeting, brief intro + why relevant (tie to the job's required_skills using only skills the profile actually lists), mention CV is attached, professional closing.
+- Always sign off the email with the candidate's name ("${profile.name}"). Never use generic placeholders like "Your Name" or "[Your Name]".
 - Do not mention match_score, confidence_score, or any internal analysis fields — those are for the person, not the employer.
 - Tone: professional, warm, not overly formal.
 

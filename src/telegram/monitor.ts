@@ -8,6 +8,44 @@ import { isDuplicate, storeJobPost } from "@/jobs/jobPostService";
 
 let client: TelegramClient | null = null;
 
+export interface RawMessageData {
+  channel: string;
+  messageId: string;
+  text: string;
+  postedAt: Date;
+  sourceUrl?: string;
+}
+
+/**
+  * Processes a single raw message through deduplication, pre-filtering, and storage.
+  */
+export async function processAndStoreMessage(msg: RawMessageData): Promise<boolean> {
+  if (!msg.text) {
+    logger.debug("Skipping non-text message", { channel: msg.channel, messageId: msg.messageId });
+    return false;
+  }
+
+  if (await isDuplicate(msg.channel, msg.messageId)) {
+    logger.debug("Skipping duplicate message", { channel: msg.channel, messageId: msg.messageId });
+    return false;
+  }
+
+  const filterResult = preFilter(msg.text);
+  const status = filterResult.pass ? "NEW" : "FILTERED";
+
+  await storeJobPost(msg, status);
+
+  if (!filterResult.pass) {
+    logger.debug("Message filtered before AI stage", {
+      channel: msg.channel,
+      messageId: msg.messageId,
+      reason: filterResult.reason,
+    });
+  }
+
+  return true;
+}
+
 /**
  * Connects the personal-account Telegram client using the saved session
  * string. Throws with a clear message if no session exists yet — run
@@ -51,6 +89,69 @@ function extractChannelInfo(event: NewMessageEvent) {
 }
 
 /**
+ * Iterates through historical messages of the day (since 00:00:00 local time by default)
+ * for each channel and processes un-ingested posts.
+ */
+export async function backfillToday(
+  tgClient: TelegramClient,
+  channels: string[],
+  startDate?: Date
+): Promise<{ processed: number; checked: number }> {
+  const startThreshold = startDate ?? new Date(new Date().setHours(0, 0, 0, 0));
+  logger.info("Starting historical post backfill", {
+    since: startThreshold.toISOString(),
+    channels,
+  });
+
+  let totalChecked = 0;
+  let totalProcessed = 0;
+
+  for (const targetChannel of channels) {
+    try {
+      logger.info(`Backfilling channel: ${targetChannel}`);
+      for await (const message of tgClient.iterMessages(targetChannel, { limit: 100 })) {
+        const postedAt = message.date ? new Date(message.date * 1000) : new Date();
+
+        // Messages are returned newest-first. Once we see a message older than startThreshold, stop.
+        if (postedAt < startThreshold) {
+          break;
+        }
+
+        totalChecked++;
+        const chat = message.chat as { username?: string; title?: string; id?: unknown } | undefined;
+        const channel = chat?.username ?? chat?.title ?? targetChannel.replace(/^@/, "");
+        const messageId = String(message.id);
+        const text = message.message ?? message.text ?? "";
+        const sourceUrl = chat?.username
+          ? `https://t.me/${chat.username}/${messageId}`
+          : targetChannel.startsWith("@")
+            ? `https://t.me/${targetChannel.replace(/^@/, "")}/${messageId}`
+            : undefined;
+
+        const stored = await processAndStoreMessage({
+          channel,
+          messageId,
+          text,
+          postedAt,
+          sourceUrl,
+        });
+
+        if (stored) {
+          totalProcessed++;
+        }
+      }
+    } catch (err) {
+      logger.error(`Error backfilling channel ${targetChannel}`, {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  logger.info("Backfill complete", { totalChecked, totalProcessed });
+  return { checked: totalChecked, processed: totalProcessed };
+}
+
+/**
  * Registers the message handler and starts listening to the configured
  * channels. Each incoming message: dedupe check -> pre-filter -> store.
  * AI analysis (Phase 4) will pick up rows with status NEW separately —
@@ -66,34 +167,18 @@ export async function startMonitoring() {
 
   logger.info("Starting channel monitor", { channels });
 
+  try {
+    await backfillToday(tgClient, channels);
+  } catch (err) {
+    logger.error("Error backfilling today's messages", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   tgClient.addEventHandler(async (event: NewMessageEvent) => {
     try {
-      const { channel, messageId, text, postedAt, sourceUrl } = extractChannelInfo(event);
-
-      if (!text) {
-        // MVP: text-only. Images/documents logged and skipped, not lost —
-        // OCR pipeline can be added later without changing this contract.
-        logger.debug("Skipping non-text message", { channel, messageId });
-        return;
-      }
-
-      if (await isDuplicate(channel, messageId)) {
-        logger.debug("Skipping duplicate message", { channel, messageId });
-        return;
-      }
-
-      const filterResult = preFilter(text);
-      const status = filterResult.pass ? "NEW" : "FILTERED";
-
-      await storeJobPost({ channel, messageId, text, postedAt, sourceUrl }, status);
-
-      if (!filterResult.pass) {
-        logger.debug("Message filtered before AI stage", {
-          channel,
-          messageId,
-          reason: filterResult.reason,
-        });
-      }
+      const raw = extractChannelInfo(event);
+      await processAndStoreMessage(raw);
     } catch (err) {
       // A single bad message must never kill the monitor loop.
       logger.error("Error handling incoming message", {
@@ -111,3 +196,4 @@ export async function stopMonitoring() {
     logger.info("Telegram client disconnected");
   }
 }
+
