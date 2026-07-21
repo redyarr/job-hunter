@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "tsx src/index.ts",
     "test": "vitest run",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -23,13 +23,13 @@
     "node-telegram-bot-api": "^0.66.0",
     "openai": "^4.67.3",
     "telegram": "^2.26.16",
+    "tsx": "^4.19.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
     "@types/node-telegram-bot-api": "^0.64.7",
     "prisma": "^5.20.0",
-    "tsx": "^4.19.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1"
   },
