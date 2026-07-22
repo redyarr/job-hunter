@@ -26,12 +26,14 @@ export const profile: Profile = {
   location: "Sulaymaniyah, Kurdistan Region, Iraq",
 
   summary:
-    "Backend web developer and data/analytics professional, also active as an " +
-    "IT lecturer and technical instructor. Comfortable across Node.js backend " +
-    "development, SQL/BI reporting, and teaching technical concepts.",
+    "Software developer (Backend & Fullstack), Data & Analytics professional, and " +
+    "IT/Programming lecturer & technical instructor. Experienced in programming, " +
+    "web development, database management, SQL/BI reporting, and technical instruction.",
 
   skills: {
     softwareDevelopment: [
+      "Software Development",
+      "Programming",
       "Node.js",
       "Express.js",
       "JavaScript",
@@ -42,44 +44,40 @@ export const profile: Profile = {
       "SQL",
       "EJS",
       "React",
-      "Web development",
-      "API development",
+      "Web Development",
+      "API Development",
+      "Python",
     ],
     dataAndAnalytics: [
-      "SQL",
       "Data Analysis",
       "Data Analytics",
-      "Business Intelligence concepts",
-      "Data visualization",
-      "Reporting",
-      "Working with databases",
-      "Python for data analysis",
+      "Business Intelligence (BI)",
+      "SQL",
+      "Data Visualization",
+      "Reporting & Dashboards",
+      "Database Management",
+      "Python for Data Analysis",
       "Tableau",
-      "Excel / data-related work",
+      "Excel / Advanced Data Work",
     ],
   },
 
-  education: ["IT / software development background (see CV for detail)"],
+  education: ["IT / Software Development background"],
 
   teachingExperience: [
-    "Teaching IT",
-    "Teaching programming",
-    "Teaching web development",
+    "Teaching IT & Technical Subjects",
+    "Teaching Programming & Web Development",
     "Teaching English",
-    "Explaining technical concepts to students",
+    "Explaining technical concepts",
   ],
 
-  workExperience: [
-    // Kept intentionally general here — the AI should not invent detail
-    // beyond what's in the CV itself. Update with real employers/dates
-    // as needed for higher-fidelity matching.
-  ],
+  workExperience: [],
 
   preferredCategories: [
-    "Backend Developer",
-    "Data Analyst",
-    "Business Intelligence Analyst",
-    "IT / Programming Instructor",
+    "Programming & Software Development (Backend, Web, Fullstack)",
+    "Data & Analytics (Data Analyst, BI Analyst, Data Specialist)",
+    "IT & Technical Roles (IT Assistant, IT Support, Tech Specialist - excluding Network/CCTV)",
+    "IT / Programming Instructor & Lecturer",
   ],
 
   cvPath: process.env.CV_PATH ?? "./data/cv/my-cv.pdf",

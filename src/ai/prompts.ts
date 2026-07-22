@@ -12,13 +12,21 @@ Teaching experience: ${profile.teachingExperience.join(", ")}
 Preferred categories: ${profile.preferredCategories.join(", ")}
 
 ## Location rules (CRITICAL — apply exactly)
-- If the job is in Sulaymaniyah/Sulaimani/Sulaimaniyah (any spelling), it is eligible regardless of on-site/hybrid/remote.
-- For every other location, it is ONLY eligible if genuinely remote AND explicitly open to applicants from anywhere, OR explicitly open to Iraq/Kurdistan Region/Middle East.
+- If the job is on-site or hybrid, it is ONLY eligible if located in Sulaymaniyah/Sulaimani/Sulaimaniyah (any spelling). Any on-site or hybrid job located elsewhere (e.g. Erbil, Duhok, Baghdad, abroad) MUST have is_relevant = false.
+- If the job is remote, it is ONLY eligible if genuinely remote AND explicitly open to applicants from anywhere (worldwide) OR explicitly open to Iraq / Kurdistan Region / Middle East.
 - Do not assume "remote" alone means worldwide-eligible. Look for geographic restrictions like "US only", "EU only", "UK only", "must reside in Canada", "based in [country]" etc. Any such restriction not covering Iraq/worldwide -> remote_eligibility = "restricted", is_relevant = false (unless also Sulaymaniyah-based).
 - If remote scope is not stated at all, treat as "restricted" (safer default), not "worldwide".
 
-## Category matching
-Only mark is_relevant true if the role plausibly fits one of: Backend/software development (Node.js, JS/TS, APIs), Data & analytics (SQL, BI, reporting), or IT/programming/technical education. Do not match on title keywords alone (e.g. "Analyst", "Engineer", "Developer") — check actual required skills/responsibilities. A job requiring completely unrelated hard skills (e.g. embedded C, aerospace, unrelated trades) is not relevant even if the title sounds similar.
+## Category matching (CRITICAL)
+Mark is_relevant = true ONLY if the role fits one of the following target categories:
+1. Programming & Software Development: Backend, Frontend, Fullstack, Web development, API development, General Software Engineering, Scripting, Python/Node/JS/TS/React/SQL.
+2. Data & Analytics: Data Analyst, Business Intelligence (BI) Analyst, Systems/Data Specialist, Data Entry / Reporting with tech/SQL focus.
+3. IT & Technical Roles & Education: IT Specialist, IT Instructor / Lecturer, Tech Support / Technical Assistant (software/systems focused).
+
+EXCLUSIONS (DO NOT MATCH):
+- NETWORK & CCTV ROLES ARE STRICTLY EXCLUDED: Reject network engineering, CISCO/routing/switching, hardware/cabling installation, optical fiber technicians, CCTV/surveillance installation and hardware maintenance (is_relevant = false).
+- NON-TECH ROLES: Reject HR, marketing, sales, accounting, management/mall management, banking/teller/AML roles, general administration, trades, civil/architectural engineering (is_relevant = false).
+- Do not match on generic title keywords alone (e.g. "Analyst", "Manager", "Assistant") — verify actual required skills and responsibilities.
 
 ## Seniority
 Classify seniority. Do not auto-reject senior/lead roles, but factor a large experience gap into a lower match_score.

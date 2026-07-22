@@ -89,7 +89,7 @@ function extractChannelInfo(event: NewMessageEvent) {
 }
 
 /**
- * Iterates through historical messages of the day (since 00:00:00 local time by default)
+ * Iterates through historical messages (since 2 days ago by default)
  * for each channel and processes un-ingested posts.
  */
 export async function backfillToday(
@@ -97,7 +97,8 @@ export async function backfillToday(
   channels: string[],
   startDate?: Date
 ): Promise<{ processed: number; checked: number }> {
-  const startThreshold = startDate ?? new Date(new Date().setHours(0, 0, 0, 0));
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  const startThreshold = startDate ?? twoDaysAgo;
   logger.info("Starting historical post backfill", {
     since: startThreshold.toISOString(),
     channels,
@@ -109,7 +110,7 @@ export async function backfillToday(
   for (const targetChannel of channels) {
     try {
       logger.info(`Backfilling channel: ${targetChannel}`);
-      for await (const message of tgClient.iterMessages(targetChannel, { limit: 100 })) {
+      for await (const message of tgClient.iterMessages(targetChannel, { limit: 300 })) {
         const postedAt = message.date ? new Date(message.date * 1000) : new Date();
 
         // Messages are returned newest-first. Once we see a message older than startThreshold, stop.
